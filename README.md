@@ -68,6 +68,7 @@ Tips:
 
 - Use a separate entry for each important tab or form.
 - Add entries for pages that require separate URLs.
+- If a page is easier to reach by clicking a visible nav tab, use `clickText` instead of `path`.
 - If a page has collapsible sections, you can add `expandSelectors`.
 
 Example:
@@ -75,7 +76,8 @@ Example:
 ```json
 {
   "label": "Branding",
-  "path": "/admin/events/123/branding",
+  "clickText": "Branding",
+  "clickRole": "any",
   "navigationPath": "Events > Summer Sale > Branding",
   "expandSelectors": [
     "[data-testid='advanced-settings-toggle']",

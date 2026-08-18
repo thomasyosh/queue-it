@@ -324,6 +324,50 @@ async function collectNavigation(page) {
   });
 }
 
+async function navigateToConfiguredPage(page, config, pageConfig) {
+  if (pageConfig.clickText) {
+    const role = pageConfig.clickRole || 'link';
+    const exact = pageConfig.clickExact !== false;
+    const candidates = [];
+
+    if (role === 'tab' || role === 'any') {
+      candidates.push(page.getByRole('tab', { name: pageConfig.clickText, exact }));
+    }
+    if (role === 'link' || role === 'any') {
+      candidates.push(page.getByRole('link', { name: pageConfig.clickText, exact }));
+    }
+    if (role === 'button' || role === 'any') {
+      candidates.push(page.getByRole('button', { name: pageConfig.clickText, exact }));
+    }
+
+    candidates.push(page.locator(`text="${pageConfig.clickText}"`));
+
+    for (const locator of candidates) {
+      if (!await locator.count()) continue;
+      try {
+        await locator.first().click({ timeout: 3000 });
+        await page.waitForLoadState('networkidle').catch(() => {});
+        await page.waitForTimeout(pageConfig.waitAfterLoadMs || 1500);
+        return page.url();
+      } catch (error) {
+        // Try the next candidate.
+      }
+    }
+
+    throw new Error(`Could not navigate using clickText "${pageConfig.clickText}" for page "${pageConfig.label}".`);
+  }
+
+  if (!pageConfig.path) {
+    throw new Error(`Page "${pageConfig.label}" is missing both path and clickText.`);
+  }
+
+  const pageUrl = new URL(pageConfig.path, config.baseUrl).toString();
+  await page.goto(pageUrl, { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle').catch(() => {});
+  await page.waitForTimeout(pageConfig.waitAfterLoadMs || 1500);
+  return pageUrl;
+}
+
 function writeCsv(filePath, pageConfig, pageUrl, rows) {
   const header = [
     'section',
@@ -424,12 +468,9 @@ async function main() {
     const pageConfig = config.pages[i];
     const order = String(i + 1).padStart(2, '0');
     const fileBase = `${order}-${slugify(pageConfig.label)}`;
-    const pageUrl = new URL(pageConfig.path, config.baseUrl).toString();
 
-    console.log(`Capturing ${pageConfig.label} -> ${pageUrl}`);
-    await page.goto(pageUrl, { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('networkidle').catch(() => {});
-    await page.waitForTimeout(pageConfig.waitAfterLoadMs || 1500);
+    console.log(`Capturing ${pageConfig.label}`);
+    const pageUrl = await navigateToConfiguredPage(page, config, pageConfig);
     await openHiddenSections(page, pageConfig);
 
     const screenshotPath = path.join(SCREENSHOT_DIR, `${fileBase}.png`);

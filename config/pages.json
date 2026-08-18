@@ -4,49 +4,57 @@
   "pages": [
     {
       "label": "Home",
-      "path": "/",
+      "clickText": "Home",
+      "clickRole": "any",
       "navigationPath": "Home",
-      "notes": "Replace path with the exact Home page URL. Capture dashboard widgets or summary settings that may be useful later."
+      "notes": "Capture dashboard widgets or summary settings that may be useful later."
     },
     {
       "label": "Monitoring",
-      "path": "/",
+      "clickText": "Monitoring",
+      "clickRole": "any",
       "navigationPath": "Monitoring",
-      "notes": "Replace path with the Monitoring page URL. Capture live status views or operational controls if they affect future setup."
+      "notes": "Capture live status views or operational controls if they affect future setup."
     },
     {
       "label": "Manage",
-      "path": "/",
+      "clickText": "Manage",
+      "clickRole": "any",
       "navigationPath": "Manage",
       "notes": "Usually the highest-priority rebuild area. Capture all event, queue, waiting room, redirect, and branding forms under Manage."
     },
     {
       "label": "Integration",
-      "path": "/",
+      "clickText": "Integration",
+      "clickRole": "any",
       "navigationPath": "Integration",
       "notes": "Capture API, tag, script, webhook, connector, or embed settings."
     },
     {
       "label": "Traffic Access Rules",
-      "path": "/",
+      "clickText": "Traffic Access Rules",
+      "clickRole": "any",
       "navigationPath": "Traffic Access Rules",
       "notes": "Capture allow lists, bypass rules, prioritization rules, IP rules, token rules, and any rule conditions."
     },
     {
       "label": "Traffic Insights",
-      "path": "/",
+      "clickText": "Traffic Insights",
+      "clickRole": "any",
       "navigationPath": "Traffic Insights",
       "notes": "Capture if needed for operational reference, but this is often lower rebuild priority than Manage or Integration."
     },
     {
       "label": "Statistics",
-      "path": "/",
+      "clickText": "Statistics",
+      "clickRole": "any",
       "navigationPath": "Statistics",
       "notes": "Usually reporting-focused. Capture only if your team needs historical evidence or setup-linked reporting views."
     },
     {
       "label": "Account",
-      "path": "/",
+      "clickText": "Account",
+      "clickRole": "any",
       "navigationPath": "Account",
       "notes": "Capture account-level settings, tenant info, users, permissions, branding defaults, and related configuration."
     }
