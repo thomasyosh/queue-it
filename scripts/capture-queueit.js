@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config();
 const { chromium } = require('playwright');
 
 const ROOT_DIR = process.cwd();
+const ENV_PATH = path.join(ROOT_DIR, '.env');
 const CONFIG_PATH = path.join(ROOT_DIR, 'config', 'pages.json');
 const OUTPUT_DIR = path.join(ROOT_DIR, 'archive-output');
 const SCREENSHOT_DIR = path.join(OUTPUT_DIR, 'screenshots');
@@ -11,12 +11,21 @@ const DATA_DIR = path.join(OUTPUT_DIR, 'data');
 const STORAGE_STATE_PATH = path.join(ROOT_DIR, 'config', 'storage-state.json');
 const FILLABLE_FIELDS_PATH = path.join(OUTPUT_DIR, 'fillable-fields.csv');
 
+require('dotenv').config({ path: ENV_PATH });
+
 const args = new Set(process.argv.slice(2));
 const saveStorage = args.has('--save-storage');
 const useStorage = args.has('--use-storage');
 
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
+}
+
+function warnIfEnvMissing() {
+  if (!fs.existsSync(ENV_PATH)) {
+    console.warn(`No .env file found at ${ENV_PATH}. The script will use config/pages.json and manual login.`);
+    console.warn('Create .env from .env.example if you want to preload Queue-it URLs or login fields.');
+  }
 }
 
 function slugify(value) {
@@ -394,6 +403,7 @@ function writeFillableFieldsCsv(filePath, rows) {
 async function main() {
   ensureDir(SCREENSHOT_DIR);
   ensureDir(DATA_DIR);
+  warnIfEnvMissing();
 
   const config = loadConfig();
   const browser = await chromium.launch({ headless: false });
