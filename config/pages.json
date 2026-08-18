@@ -14,49 +14,207 @@
       "clickText": "Monitoring",
       "clickRole": "any",
       "navigationPath": "Monitoring",
-      "notes": "Capture live status views or operational controls if they affect future setup."
+      "notes": "Capture live status views or operational controls if they affect future setup.",
+      "children": [
+        {
+          "label": "Overview",
+          "clickText": "Overview",
+          "clickRole": "any",
+          "navigationPath": "Monitoring > Overview"
+        },
+        {
+          "label": "Dashboard",
+          "clickText": "Dashboard",
+          "clickRole": "any",
+          "navigationPath": "Monitoring > Dashboard"
+        }
+      ]
     },
     {
       "label": "Manage",
       "clickText": "Manage",
       "clickRole": "any",
       "navigationPath": "Manage",
-      "notes": "Usually the highest-priority rebuild area. Capture all event, queue, waiting room, redirect, and branding forms under Manage."
+      "notes": "Usually the highest-priority rebuild area. Capture all event, queue, waiting room, redirect, and branding forms under Manage.",
+      "children": [
+        {
+          "label": "Waiting Rooms",
+          "clickText": "Waiting Rooms",
+          "clickRole": "any",
+          "navigationPath": "Manage > Waiting Rooms"
+        },
+        {
+          "label": "Waiting Rooms Aliases",
+          "clickText": "Waiting Rooms Aliases",
+          "clickRole": "any",
+          "navigationPath": "Manage > Waiting Rooms Aliases"
+        },
+        {
+          "label": "Waiting Rooms Configuration",
+          "clickText": "Waiting Rooms Configuration",
+          "clickRole": "any",
+          "navigationPath": "Manage > Waiting Rooms Configuration"
+        },
+        {
+          "label": "Custom Themes",
+          "clickText": "Custom Themes",
+          "clickRole": "any",
+          "navigationPath": "Manage > Custom Themes"
+        },
+        {
+          "label": "Load Tests",
+          "clickText": "Load Tests",
+          "clickRole": "any",
+          "navigationPath": "Manage > Load Tests"
+        }
+      ]
     },
     {
       "label": "Integration",
       "clickText": "Integration",
       "clickRole": "any",
       "navigationPath": "Integration",
-      "notes": "Capture API, tag, script, webhook, connector, or embed settings."
+      "notes": "Capture API, tag, script, webhook, connector, or embed settings.",
+      "children": [
+        {
+          "label": "Overview",
+          "clickText": "Overview",
+          "clickRole": "any",
+          "navigationPath": "Integration > Overview"
+        },
+        {
+          "label": "Integration Rules",
+          "clickText": "Integration Rules",
+          "clickRole": "any",
+          "navigationPath": "Integration > Integration Rules"
+        },
+        {
+          "label": "Configurations",
+          "clickText": "Configurations",
+          "clickRole": "any",
+          "navigationPath": "Integration > Configurations"
+        },
+        {
+          "label": "Connector Diagnostics",
+          "clickText": "Connector Diagnostics",
+          "clickRole": "any",
+          "navigationPath": "Integration > Connector Diagnostics"
+        }
+      ]
     },
     {
       "label": "Traffic Access Rules",
       "clickText": "Traffic Access Rules",
       "clickRole": "any",
       "navigationPath": "Traffic Access Rules",
-      "notes": "Capture allow lists, bypass rules, prioritization rules, IP rules, token rules, and any rule conditions."
+      "notes": "Capture allow lists, bypass rules, prioritization rules, IP rules, token rules, and any rule conditions.",
+      "children": [
+        {
+          "label": "Allow List",
+          "clickText": "Allow List",
+          "clickRole": "any",
+          "navigationPath": "Traffic Access Rules > Allow List"
+        },
+        {
+          "label": "Bypass Rules",
+          "clickText": "Bypass Rules",
+          "clickRole": "any",
+          "navigationPath": "Traffic Access Rules > Bypass Rules"
+        }
+      ]
     },
     {
       "label": "Traffic Insights",
       "clickText": "Traffic Insights",
       "clickRole": "any",
       "navigationPath": "Traffic Insights",
-      "notes": "Capture if needed for operational reference, but this is often lower rebuild priority than Manage or Integration."
+      "notes": "Capture if needed for operational reference, but this is often lower rebuild priority than Manage or Integration.",
+      "children": [
+        {
+          "label": "Dashboards",
+          "clickText": "Dashboards",
+          "clickRole": "any",
+          "navigationPath": "Traffic Insights > Dashboards"
+        }
+      ]
     },
     {
       "label": "Statistics",
       "clickText": "Statistics",
       "clickRole": "any",
       "navigationPath": "Statistics",
-      "notes": "Usually reporting-focused. Capture only if your team needs historical evidence or setup-linked reporting views."
+      "notes": "Usually reporting-focused. Capture only if your team needs historical evidence or setup-linked reporting views.",
+      "children": [
+        {
+          "label": "Graphs",
+          "clickText": "Graphs",
+          "clickRole": "any",
+          "navigationPath": "Statistics > Graphs"
+        },
+        {
+          "label": "Performance",
+          "clickText": "Performance",
+          "clickRole": "any",
+          "navigationPath": "Statistics > Performance"
+        }
+      ]
     },
     {
       "label": "Account",
       "clickText": "Account",
       "clickRole": "any",
       "navigationPath": "Account",
-      "notes": "Capture account-level settings, tenant info, users, permissions, branding defaults, and related configuration."
+      "notes": "Capture account-level settings, tenant info, users, permissions, branding defaults, and related configuration.",
+      "children": [
+        {
+          "label": "API Keys",
+          "clickText": "API Keys",
+          "clickRole": "any",
+          "navigationPath": "Account > API Keys"
+        },
+        {
+          "label": "Company Profile",
+          "clickText": "Company Profile",
+          "clickRole": "any",
+          "navigationPath": "Account > Company Profile"
+        },
+        {
+          "label": "Settings",
+          "clickText": "Settings",
+          "clickRole": "any",
+          "navigationPath": "Account > Settings"
+        },
+        {
+          "label": "Subscription",
+          "clickText": "Subscription",
+          "clickRole": "any",
+          "navigationPath": "Account > Subscription"
+        },
+        {
+          "label": "User",
+          "clickText": "User",
+          "clickRole": "any",
+          "navigationPath": "Account > User"
+        },
+        {
+          "label": "User Groups",
+          "clickText": "User Groups",
+          "clickRole": "any",
+          "navigationPath": "Account > User Groups"
+        },
+        {
+          "label": "Notification Groups",
+          "clickText": "Notification Groups",
+          "clickRole": "any",
+          "navigationPath": "Account > Notification Groups"
+        },
+        {
+          "label": "Change Log",
+          "clickText": "Change Log",
+          "clickRole": "any",
+          "navigationPath": "Account > Change Log"
+        }
+      ]
     }
   ]
 }
