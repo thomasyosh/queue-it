@@ -8,6 +8,7 @@ const OUTPUT_DIR = path.join(ROOT_DIR, 'archive-output');
 const SCREENSHOT_DIR = path.join(OUTPUT_DIR, 'screenshots');
 const DATA_DIR = path.join(OUTPUT_DIR, 'data');
 const STORAGE_STATE_PATH = path.join(ROOT_DIR, 'config', 'storage-state.json');
+const FILLABLE_FIELDS_PATH = path.join(OUTPUT_DIR, 'fillable-fields.csv');
 
 const args = new Set(process.argv.slice(2));
 const saveStorage = args.has('--save-storage');
@@ -79,6 +80,17 @@ async function openHiddenSections(page, pageConfig) {
 
 async function collectFields(page) {
   return await page.evaluate(() => {
+    const FIELD_SELECTOR = [
+      'input',
+      'textarea',
+      'select',
+      '[role="switch"]',
+      '[role="combobox"]',
+      '[role="checkbox"]',
+      '[role="radio"]',
+      '[contenteditable="true"]',
+    ].join(', ');
+
     const getLabelText = (el) => {
       const parts = [];
       const id = el.getAttribute('id');
@@ -114,6 +126,8 @@ async function collectFields(page) {
       return unique.join(' | ');
     };
 
+    const getVisibleText = (el) => el.innerText ? el.innerText.replace(/\s+/g, ' ').trim() : '';
+
     const getSectionText = (el) => {
       const container = el.closest('section, fieldset, [class*="section"], [class*="panel"], [class*="card"]');
       if (!container) return '';
@@ -121,8 +135,35 @@ async function collectFields(page) {
       return heading ? heading.innerText.trim() : '';
     };
 
-    const elements = [...document.querySelectorAll('input, textarea, select, [role="switch"], [contenteditable="true"]')];
+    const getOptionsSummary = (el, role, tagName) => {
+      if (tagName === 'select') {
+        return [...el.options].map((option) => option.textContent.trim()).filter(Boolean).join(' | ');
+      }
+
+      if (role === 'combobox') {
+        const listboxId = el.getAttribute('aria-controls');
+        const listbox = listboxId ? document.getElementById(listboxId) : null;
+        if (listbox) {
+          return [...listbox.querySelectorAll('[role="option"]')]
+            .map((option) => option.innerText.trim())
+            .filter(Boolean)
+            .join(' | ');
+        }
+      }
+
+      return '';
+    };
+
+    const getSelectorHint = (el) => {
+      if (el.id) return `#${el.id}`;
+      if (el.getAttribute('name')) return `${el.tagName.toLowerCase()}[name="${el.getAttribute('name')}"]`;
+      if (el.getAttribute('role')) return `[role="${el.getAttribute('role')}"]`;
+      return el.tagName.toLowerCase();
+    };
+
+    const elements = [...document.querySelectorAll(FIELD_SELECTOR)];
     const rows = [];
+    const seen = new Set();
 
     for (const el of elements) {
       const tagName = el.tagName.toLowerCase();
@@ -144,9 +185,20 @@ async function collectFields(page) {
       } else if (role === 'switch') {
         const checked = el.getAttribute('aria-checked');
         value = checked === 'true' ? 'true' : checked === 'false' ? 'false' : el.innerText.trim();
+      } else if (role === 'checkbox' || role === 'radio') {
+        const checked = el.getAttribute('aria-checked');
+        value = checked === 'true' ? 'true' : checked === 'false' ? 'false' : getVisibleText(el);
+      } else if (role === 'combobox') {
+        value = el.getAttribute('aria-valuetext') || el.getAttribute('aria-label') || getVisibleText(el);
       } else {
         value = el.innerText.trim();
       }
+
+      const selectorHint = getSelectorHint(el);
+      const optionsSummary = getOptionsSummary(el, role, tagName);
+      const key = [section, label, selectorHint].join('||');
+      if (seen.has(key)) continue;
+      seen.add(key);
 
       rows.push({
         section,
@@ -155,10 +207,40 @@ async function collectFields(page) {
         controlType: role || tagName,
         inputType,
         visible: isVisible,
+        selectorHint,
+        optionsSummary,
+        fillable: true,
       });
     }
 
     return rows;
+  });
+}
+
+async function collectNavigation(page) {
+  return await page.evaluate(() => {
+    const navCandidates = [
+      ...document.querySelectorAll('nav a, nav button, [role="tab"], [role="navigation"] a, [role="navigation"] button'),
+    ];
+
+    const items = navCandidates
+      .map((el) => ({
+        text: el.innerText ? el.innerText.replace(/\s+/g, ' ').trim() : '',
+        role: el.getAttribute('role') || '',
+        href: el.getAttribute('href') || '',
+        ariaCurrent: el.getAttribute('aria-current') || '',
+      }))
+      .filter((item) => item.text);
+
+    const deduped = [];
+    const seen = new Set();
+    for (const item of items) {
+      const key = [item.text, item.href, item.role].join('||');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      deduped.push(item);
+    }
+    return deduped;
   });
 }
 
@@ -173,6 +255,9 @@ function writeCsv(filePath, pageConfig, pageUrl, rows) {
     'controlType',
     'inputType',
     'visible',
+    'selectorHint',
+    'optionsSummary',
+    'fillable',
     'notes',
   ];
 
@@ -188,7 +273,47 @@ function writeCsv(filePath, pageConfig, pageUrl, rows) {
       csvEscape(row.controlType),
       csvEscape(row.inputType),
       csvEscape(row.visible),
+      csvEscape(row.selectorHint),
+      csvEscape(row.optionsSummary),
+      csvEscape(row.fillable),
       csvEscape(pageConfig.notes || ''),
+    ].join(','));
+  }
+
+  fs.writeFileSync(filePath, lines.join('\n'), 'utf8');
+}
+
+function writeFillableFieldsCsv(filePath, rows) {
+  const header = [
+    'pageLabel',
+    'navigationPath',
+    'pageUrl',
+    'section',
+    'fieldLabel',
+    'value',
+    'controlType',
+    'inputType',
+    'optionsSummary',
+    'selectorHint',
+    'screenshot',
+    'notes',
+  ];
+
+  const lines = [header.join(',')];
+  for (const row of rows) {
+    lines.push([
+      csvEscape(row.pageLabel),
+      csvEscape(row.navigationPath),
+      csvEscape(row.pageUrl),
+      csvEscape(row.section),
+      csvEscape(row.fieldLabel),
+      csvEscape(row.value),
+      csvEscape(row.controlType),
+      csvEscape(row.inputType),
+      csvEscape(row.optionsSummary),
+      csvEscape(row.selectorHint),
+      csvEscape(row.screenshot),
+      csvEscape(row.notes),
     ].join(','));
   }
 
@@ -212,6 +337,7 @@ async function main() {
   }
 
   const indexRows = [];
+  const fillableFields = [];
 
   for (let i = 0; i < config.pages.length; i += 1) {
     const pageConfig = config.pages[i];
@@ -231,6 +357,7 @@ async function main() {
 
     await page.screenshot({ path: screenshotPath, fullPage: true });
     const fields = await collectFields(page);
+    const navigation = await collectNavigation(page);
 
     const data = {
       capturedAt: new Date().toISOString(),
@@ -238,11 +365,29 @@ async function main() {
       navigationPath: pageConfig.navigationPath || '',
       pageUrl,
       notes: pageConfig.notes || '',
+      navigation,
       fields,
     };
 
     fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2), 'utf8');
     writeCsv(csvPath, pageConfig, pageUrl, fields);
+
+    for (const field of fields.filter((item) => item.fillable)) {
+      fillableFields.push({
+        pageLabel: pageConfig.label,
+        navigationPath: pageConfig.navigationPath || '',
+        pageUrl,
+        section: field.section,
+        fieldLabel: field.label,
+        value: field.value,
+        controlType: field.controlType,
+        inputType: field.inputType,
+        optionsSummary: field.optionsSummary,
+        selectorHint: field.selectorHint,
+        screenshot: path.relative(ROOT_DIR, screenshotPath),
+        notes: pageConfig.notes || '',
+      });
+    }
 
     indexRows.push({
       order,
@@ -272,6 +417,7 @@ async function main() {
     ].join(','));
   }
   fs.writeFileSync(indexCsvPath, indexLines.join('\n'), 'utf8');
+  writeFillableFieldsCsv(FILLABLE_FIELDS_PATH, fillableFields);
 
   if (saveStorage) {
     await context.storageState({ path: STORAGE_STATE_PATH });

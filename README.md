@@ -7,6 +7,7 @@ It produces:
 - full-page screenshots for each important settings page
 - a JSON export of detected field labels and values
 - a CSV export for easier review in Excel
+- a master `fillable-fields.csv` focused on fields a future user may need to re-enter
 - a master `index.csv` linking each page to its screenshot and data files
 
 ## Folder layout
@@ -76,9 +77,9 @@ npm run capture:save
 What happens:
 
 1. Chromium opens.
-2. You log in to Queue-it manually.
+2. You log in to Queue-it manually, including `Customer Account ID`, `Continue`, `Email address`, and `Password`.
 3. After login is complete, return to the terminal and press Enter.
-4. The script visits each configured page, takes a full-page screenshot, and exports field data.
+4. The script visits each configured page, takes a full-page screenshot, records navigation items, and exports fillable field data.
 5. Your login session is saved in `config/storage-state.json`.
 
 Later runs, reusing the saved session:
@@ -99,6 +100,7 @@ After a successful run, check:
 
 - `archive-output/screenshots/`
 - `archive-output/data/`
+- `archive-output/fillable-fields.csv`
 - `archive-output/index.csv`
 
 ## Recommended operating process
@@ -106,7 +108,7 @@ After a successful run, check:
 Use the script for the main archive, then review the output and manually fill any gaps:
 
 1. Capture all important Queue-it pages with the script.
-2. Review the generated CSV files in Excel.
+2. Review `archive-output/fillable-fields.csv` first, because it is the main rebuild worksheet.
 3. Add missing modal-only or custom-widget values to `templates/queueit-settings-template.csv` or your internal spreadsheet.
 4. Zip the entire project folder and store it in your company archive.
 
