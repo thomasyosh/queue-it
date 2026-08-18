@@ -1,0 +1,4 @@
+"Section","Navigation Path","Field Name","Value","Control Type","Required For Rebuild","Dependency / Visibility Rule","Screenshot File","Notes"
+"Waiting Room","Settings > Waiting Room > Queue Layout","Queue Name","","text input","Yes","","screenshots/02-waiting-room.png",""
+"Waiting Room","Settings > Waiting Room > Queue Layout","Max Active Users","","number input","Yes","","screenshots/02-waiting-room.png",""
+"Branding","Settings > Branding","Primary Color","","color / text input","Yes","","screenshots/03-branding.png",""

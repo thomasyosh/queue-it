@@ -1,0 +1,17 @@
+{
+  "name": "queue-it-config-archiver",
+  "version": "1.0.0",
+  "description": "Archive Queue-it admin settings with screenshots and field-value exports.",
+  "main": "scripts/capture-queueit.js",
+  "scripts": {
+    "capture": "node scripts/capture-queueit.js",
+    "capture:save": "node scripts/capture-queueit.js --save-storage",
+    "capture:resume": "node scripts/capture-queueit.js --use-storage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "playwright": "^1.62.1"
+  }
+}

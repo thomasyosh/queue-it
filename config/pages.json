@@ -1,0 +1,23 @@
+{
+  "baseUrl": "https://YOUR-QUEUEIT-ADMIN-URL/",
+  "pages": [
+    {
+      "label": "General Settings",
+      "path": "/",
+      "navigationPath": "Dashboard > General Settings",
+      "notes": "Replace path with the exact admin page URL or relative path."
+    },
+    {
+      "label": "Waiting Room Configuration",
+      "path": "/",
+      "navigationPath": "Settings > Waiting Room",
+      "notes": "Capture queue rules, traffic controls, and timing values."
+    },
+    {
+      "label": "Branding",
+      "path": "/",
+      "navigationPath": "Settings > Branding",
+      "notes": "Capture colors, logos, copy text, and localized content."
+    }
+  ]
+}
