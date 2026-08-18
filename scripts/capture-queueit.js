@@ -324,37 +324,80 @@ async function collectNavigation(page) {
   });
 }
 
+function normalizePageEntries(pages, parents = []) {
+  const result = [];
+
+  for (const page of pages) {
+    const clickStep = page.clickText
+      ? [{
+          text: page.clickText,
+          role: page.clickRole || 'link',
+          exact: page.clickExact !== false,
+        }]
+      : [];
+
+    const entry = {
+      ...page,
+      navigationPath: page.navigationPath || [...parents.map((parent) => parent.label), page.label].join(' > '),
+      clickSequence: [...parents.flatMap((parent) => parent.clickSequence || []), ...clickStep],
+    };
+
+    result.push(entry);
+
+    if (Array.isArray(page.children) && page.children.length > 0) {
+      result.push(...normalizePageEntries(
+        page.children,
+        [...parents, { label: page.label, clickSequence: clickStep }],
+      ));
+    }
+  }
+
+  return result;
+}
+
+async function clickByStep(page, step, pageLabel, waitAfterLoadMs) {
+  const role = step.role || 'link';
+  const exact = step.exact !== false;
+  const candidates = [];
+
+  if (role === 'tab' || role === 'any') {
+    candidates.push(page.getByRole('tab', { name: step.text, exact }));
+  }
+  if (role === 'link' || role === 'any') {
+    candidates.push(page.getByRole('link', { name: step.text, exact }));
+  }
+  if (role === 'button' || role === 'any') {
+    candidates.push(page.getByRole('button', { name: step.text, exact }));
+  }
+
+  candidates.push(page.locator(`text="${step.text}"`));
+
+  for (const locator of candidates) {
+    if (!await locator.count()) continue;
+    try {
+      await locator.first().click({ timeout: 3000 });
+      await page.waitForLoadState('networkidle').catch(() => {});
+      await page.waitForTimeout(waitAfterLoadMs || 1500);
+      return true;
+    } catch (error) {
+      // Try the next candidate.
+    }
+  }
+
+  throw new Error(`Could not click "${step.text}" while navigating to page "${pageLabel}".`);
+}
+
 async function navigateToConfiguredPage(page, config, pageConfig) {
-  if (pageConfig.clickText) {
-    const role = pageConfig.clickRole || 'link';
-    const exact = pageConfig.clickExact !== false;
-    const candidates = [];
+  if (pageConfig.clickSequence && pageConfig.clickSequence.length > 0) {
+    await page.goto(config.baseUrl, { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForTimeout(pageConfig.waitAfterLoadMs || 1500);
 
-    if (role === 'tab' || role === 'any') {
-      candidates.push(page.getByRole('tab', { name: pageConfig.clickText, exact }));
-    }
-    if (role === 'link' || role === 'any') {
-      candidates.push(page.getByRole('link', { name: pageConfig.clickText, exact }));
-    }
-    if (role === 'button' || role === 'any') {
-      candidates.push(page.getByRole('button', { name: pageConfig.clickText, exact }));
+    for (const step of pageConfig.clickSequence) {
+      await clickByStep(page, step, pageConfig.label, pageConfig.waitAfterLoadMs);
     }
 
-    candidates.push(page.locator(`text="${pageConfig.clickText}"`));
-
-    for (const locator of candidates) {
-      if (!await locator.count()) continue;
-      try {
-        await locator.first().click({ timeout: 3000 });
-        await page.waitForLoadState('networkidle').catch(() => {});
-        await page.waitForTimeout(pageConfig.waitAfterLoadMs || 1500);
-        return page.url();
-      } catch (error) {
-        // Try the next candidate.
-      }
-    }
-
-    throw new Error(`Could not navigate using clickText "${pageConfig.clickText}" for page "${pageConfig.label}".`);
+    return page.url();
   }
 
   if (!pageConfig.path) {
@@ -450,6 +493,7 @@ async function main() {
   warnIfEnvMissing();
 
   const config = loadConfig();
+  const pageEntries = normalizePageEntries(config.pages);
   const browser = await chromium.launch({ headless: false });
   const contextOptions = useStorage && fs.existsSync(STORAGE_STATE_PATH)
     ? { storageState: STORAGE_STATE_PATH }
@@ -464,8 +508,8 @@ async function main() {
   const indexRows = [];
   const fillableFields = [];
 
-  for (let i = 0; i < config.pages.length; i += 1) {
-    const pageConfig = config.pages[i];
+  for (let i = 0; i < pageEntries.length; i += 1) {
+    const pageConfig = pageEntries[i];
     const order = String(i + 1).padStart(2, '0');
     const fileBase = `${order}-${slugify(pageConfig.label)}`;
 

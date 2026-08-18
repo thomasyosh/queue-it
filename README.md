@@ -69,19 +69,27 @@ Tips:
 - Use a separate entry for each important tab or form.
 - Add entries for pages that require separate URLs.
 - If a page is easier to reach by clicking a visible nav tab, use `clickText` instead of `path`.
+- If a page has inner tabs or subpages, add them under `children` so the script captures both the parent tab and each nested page.
 - If a page has collapsible sections, you can add `expandSelectors`.
 
 Example:
 
 ```json
 {
-  "label": "Branding",
-  "clickText": "Branding",
+  "label": "Manage",
+  "clickText": "Manage",
   "clickRole": "any",
-  "navigationPath": "Events > Summer Sale > Branding",
-  "expandSelectors": [
-    "[data-testid='advanced-settings-toggle']",
-    "button[aria-controls='localization-panel']"
+  "children": [
+    {
+      "label": "Branding",
+      "clickText": "Branding",
+      "clickRole": "any",
+      "navigationPath": "Manage > Branding",
+      "expandSelectors": [
+        "[data-testid='advanced-settings-toggle']",
+        "button[aria-controls='localization-panel']"
+      ]
+    }
   ]
 }
 ```
