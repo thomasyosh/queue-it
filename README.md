@@ -26,9 +26,27 @@ Install browser binaries once:
 npx playwright install chromium
 ```
 
+Create a local `.env` file from `.env.example` and fill in your preferred values:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Supported `.env` values:
+
+- `QUEUEIT_BASE_URL`
+- `QUEUEIT_LOGIN_URL`
+- `QUEUEIT_CUSTOMER_ACCOUNT_ID`
+- `QUEUEIT_EMAIL`
+- `QUEUEIT_PASSWORD`
+
+The `.env` file is gitignored.
+
 ## Configure the pages to capture
 
 Edit `config/pages.json` and replace the sample entries with your real Queue-it admin pages.
+
+You can keep `baseUrl` and `loginUrl` in `config/pages.json`, but `.env` values take priority if both are set.
 
 Example:
 
@@ -77,10 +95,12 @@ npm run capture:save
 What happens:
 
 1. Chromium opens.
-2. You log in to Queue-it manually, including `Customer Account ID`, `Continue`, `Email address`, and `Password`.
-3. After login is complete, return to the terminal and press Enter.
-4. The script visits each configured page, takes a full-page screenshot, records navigation items, and exports fillable field data.
-5. Your login session is saved in `config/storage-state.json`.
+2. The script opens the Queue-it login page from `.env` or `config/pages.json`.
+3. If `.env` contains login details, the script will try to prefill them when the page structure allows it.
+4. Complete any remaining login steps manually.
+5. After login is complete, return to the terminal and press Enter.
+6. The script visits each configured page, takes a full-page screenshot, records navigation items, and exports fillable field data.
+7. Your login session is saved in `config/storage-state.json`.
 
 Later runs, reusing the saved session:
 

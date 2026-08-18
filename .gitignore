@@ -1,3 +1,4 @@
 node_modules/
 archive-output/
 config/storage-state.json
+.env

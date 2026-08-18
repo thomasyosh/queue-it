@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 const { chromium } = require('playwright');
 
 const ROOT_DIR = process.cwd();
@@ -39,17 +40,87 @@ function loadConfig() {
   const raw = fs.readFileSync(CONFIG_PATH, 'utf8');
   const parsed = JSON.parse(raw);
 
-  if (!parsed.baseUrl || !Array.isArray(parsed.pages) || parsed.pages.length === 0) {
-    throw new Error('config/pages.json must contain baseUrl and a non-empty pages array.');
+  const resolvedBaseUrl = process.env.QUEUEIT_BASE_URL || parsed.baseUrl;
+  const resolvedLoginUrl = process.env.QUEUEIT_LOGIN_URL || parsed.loginUrl || resolvedBaseUrl;
+
+  if (!resolvedBaseUrl || !Array.isArray(parsed.pages) || parsed.pages.length === 0) {
+    throw new Error('Set QUEUEIT_BASE_URL in .env or provide baseUrl in config/pages.json, plus a non-empty pages array.');
   }
 
-  return parsed;
+  return {
+    ...parsed,
+    baseUrl: resolvedBaseUrl,
+    loginUrl: resolvedLoginUrl,
+  };
 }
 
-async function waitForManualLogin(page, baseUrl) {
-  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+async function tryFill(locator, value) {
+  if (!value || !await locator.count()) return false;
+  try {
+    await locator.first().fill(value, { timeout: 1500 });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+async function tryClick(locator) {
+  if (!await locator.count()) return false;
+  try {
+    await locator.first().click({ timeout: 1500 });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+async function prefillLogin(page) {
+  const customerAccountId = process.env.QUEUEIT_CUSTOMER_ACCOUNT_ID;
+  const email = process.env.QUEUEIT_EMAIL;
+  const password = process.env.QUEUEIT_PASSWORD;
+
+  if (customerAccountId) {
+    const filledCustomerId = await tryFill(
+      page.locator([
+        'input[name*="customer" i]',
+        'input[id*="customer" i]',
+        'input[placeholder*="customer" i]',
+        'input[aria-label*="customer" i]',
+        'input[type="text"]',
+      ].join(', ')),
+      customerAccountId,
+    );
+
+    if (filledCustomerId) {
+      await tryClick(page.getByRole('button', { name: /continue/i }));
+      await page.waitForTimeout(1000);
+    }
+  }
+
+  if (email) {
+    await tryFill(
+      page.locator([
+        'input[type="email"]',
+        'input[name*="email" i]',
+        'input[id*="email" i]',
+        'input[placeholder*="email" i]',
+        'input[aria-label*="email" i]',
+      ].join(', ')),
+      email,
+    );
+  }
+
+  if (password) {
+    await tryFill(page.locator('input[type="password"]'), password);
+  }
+}
+
+async function waitForManualLogin(page, loginUrl) {
+  await page.goto(loginUrl, { waitUntil: 'domcontentloaded' });
+  await prefillLogin(page);
   console.log('');
   console.log('Log in to Queue-it in the opened browser window.');
+  console.log('If .env values were provided, the script may prefill Customer Account ID, Email, or Password when possible.');
   console.log('After login is complete and you can access admin pages, press Enter here to continue.');
 
   await new Promise((resolve) => {
@@ -333,7 +404,7 @@ async function main() {
   const page = await context.newPage();
 
   if (!useStorage || !fs.existsSync(STORAGE_STATE_PATH)) {
-    await waitForManualLogin(page, config.baseUrl);
+    await waitForManualLogin(page, config.loginUrl);
   }
 
   const indexRows = [];

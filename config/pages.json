@@ -1,23 +1,54 @@
 {
-  "baseUrl": "https://YOUR-QUEUEIT-ADMIN-URL/",
+  "baseUrl": "https://go.queue-it.net/",
+  "loginUrl": "https://go.queue-it.net/account/login",
   "pages": [
     {
-      "label": "General Settings",
+      "label": "Home",
       "path": "/",
-      "navigationPath": "Dashboard > General Settings",
-      "notes": "Replace path with the exact admin page URL or relative path."
+      "navigationPath": "Home",
+      "notes": "Replace path with the exact Home page URL. Capture dashboard widgets or summary settings that may be useful later."
     },
     {
-      "label": "Waiting Room Configuration",
+      "label": "Monitoring",
       "path": "/",
-      "navigationPath": "Settings > Waiting Room",
-      "notes": "Capture queue rules, traffic controls, and timing values."
+      "navigationPath": "Monitoring",
+      "notes": "Replace path with the Monitoring page URL. Capture live status views or operational controls if they affect future setup."
     },
     {
-      "label": "Branding",
+      "label": "Manage",
       "path": "/",
-      "navigationPath": "Settings > Branding",
-      "notes": "Capture colors, logos, copy text, and localized content."
+      "navigationPath": "Manage",
+      "notes": "Usually the highest-priority rebuild area. Capture all event, queue, waiting room, redirect, and branding forms under Manage."
+    },
+    {
+      "label": "Integration",
+      "path": "/",
+      "navigationPath": "Integration",
+      "notes": "Capture API, tag, script, webhook, connector, or embed settings."
+    },
+    {
+      "label": "Traffic Access Rules",
+      "path": "/",
+      "navigationPath": "Traffic Access Rules",
+      "notes": "Capture allow lists, bypass rules, prioritization rules, IP rules, token rules, and any rule conditions."
+    },
+    {
+      "label": "Traffic Insights",
+      "path": "/",
+      "navigationPath": "Traffic Insights",
+      "notes": "Capture if needed for operational reference, but this is often lower rebuild priority than Manage or Integration."
+    },
+    {
+      "label": "Statistics",
+      "path": "/",
+      "navigationPath": "Statistics",
+      "notes": "Usually reporting-focused. Capture only if your team needs historical evidence or setup-linked reporting views."
+    },
+    {
+      "label": "Account",
+      "path": "/",
+      "navigationPath": "Account",
+      "notes": "Capture account-level settings, tenant info, users, permissions, branding defaults, and related configuration."
     }
   ]
 }
